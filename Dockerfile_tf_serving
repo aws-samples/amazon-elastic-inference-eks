@@ -1,0 +1,24 @@
+FROM amazonlinux
+
+# install missing packages
+RUN yum install -y wget && yum install -y tar && yum install -y git
+
+# install binary for TensorFlow Serving modified for Elastic Inference
+RUN wget -q -O - https://s3.amazonaws.com/amazonei-tensorflow/tensorflow-serving/v1.12/amazonlinux/latest/tensorflow-serving-1-12-0-amazonlinux-ei-1-1.tar.gz | tar -xvz
+
+RUN chmod +x /tensorflow-serving-1-12-0-amazonlinux-ei-1-1/amazonei_tensorflow_model_server
+
+# install object detection model
+WORKDIR /models
+RUN wget -nv -O model.tar.gz \
+http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03.tar.gz
+RUN tar -xvf model.tar.gz
+RUN mkdir -p object-detect/1
+RUN find -name saved_model -exec mv {}/saved_model.pb {}/variables object-detect/1/ \;
+
+WORKDIR /
+
+CMD ["./tensorflow-serving-1-12-0-amazonlinux-ei-1-1/amazonei_tensorflow_model_server", \
+    "--rest_api_port=8501", \
+    "--model_base_path=/models/object-detect"]
+
