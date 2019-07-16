@@ -1,0 +1,1065 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: EKS + Elastic Inference Blog Post
+
+
+Parameters:
+
+  KeyName:
+    Type: String
+    Default: ''
+    Description: The EC2 Key Pair to allow SSH access to the instances
+
+  ElasticInferenceType:
+    Description: Elastic Inference type
+    Type: String
+    Default: eia1.medium
+
+  EksClusterName:
+    Description: EKS Cluster Name
+    Default: eks-ei-cluster
+    Type: String
+
+  NodeInstanceType:
+    Description: EC2 instance type for the node instances
+    Type: String
+    Default: m5.large
+    ConstraintDescription: Must be a valid EC2 instance type
+    AllowedValues:
+      - t2.small
+      - t2.medium
+      - t2.large
+      - t2.xlarge
+      - t2.2xlarge
+      - t3.nano
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+      - t3.xlarge
+      - t3.2xlarge
+      - m3.medium
+      - m3.large
+      - m3.xlarge
+      - m3.2xlarge
+      - m4.large
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+      - m4.10xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - m5.12xlarge
+      - m5.24xlarge
+      - c4.large
+      - c4.xlarge
+      - c4.2xlarge
+      - c4.4xlarge
+      - c4.8xlarge
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+      - c5.9xlarge
+      - c5.18xlarge
+      - i3.large
+      - i3.xlarge
+      - i3.2xlarge
+      - i3.4xlarge
+      - i3.8xlarge
+      - i3.16xlarge
+      - r3.xlarge
+      - r3.2xlarge
+      - r3.4xlarge
+      - r3.8xlarge
+      - r4.large
+      - r4.xlarge
+      - r4.2xlarge
+      - r4.4xlarge
+      - r4.8xlarge
+      - r4.16xlarge
+      - x1.16xlarge
+      - x1.32xlarge
+      - p2.xlarge
+      - p2.8xlarge
+      - p2.16xlarge
+      - p3.2xlarge
+      - p3.8xlarge
+      - p3.16xlarge
+      - p3dn.24xlarge
+      - r5.large
+      - r5.xlarge
+      - r5.2xlarge
+      - r5.4xlarge
+      - r5.12xlarge
+      - r5.24xlarge
+      - r5d.large
+      - r5d.xlarge
+      - r5d.2xlarge
+      - r5d.4xlarge
+      - r5d.12xlarge
+      - r5d.24xlarge
+      - z1d.large
+      - z1d.xlarge
+      - z1d.2xlarge
+      - z1d.3xlarge
+      - z1d.6xlarge
+      - z1d.12xlarge
+
+  InferenceNodeInstanceType:
+    Description: EC2 instance type for the node instances
+    Type: String
+    Default: c5.large
+    ConstraintDescription: Must be a valid EC2 instance type
+    AllowedValues:
+      - t2.small
+      - t2.medium
+      - t2.large
+      - t2.xlarge
+      - t2.2xlarge
+      - t3.nano
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+      - t3.xlarge
+      - t3.2xlarge
+      - m3.medium
+      - m3.large
+      - m3.xlarge
+      - m3.2xlarge
+      - m4.large
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+      - m4.10xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - m5.12xlarge
+      - m5.24xlarge
+      - c4.large
+      - c4.xlarge
+      - c4.2xlarge
+      - c4.4xlarge
+      - c4.8xlarge
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+      - c5.9xlarge
+      - c5.18xlarge
+      - i3.large
+      - i3.xlarge
+      - i3.2xlarge
+      - i3.4xlarge
+      - i3.8xlarge
+      - i3.16xlarge
+      - r3.xlarge
+      - r3.2xlarge
+      - r3.4xlarge
+      - r3.8xlarge
+      - r4.large
+      - r4.xlarge
+      - r4.2xlarge
+      - r4.4xlarge
+      - r4.8xlarge
+      - r4.16xlarge
+      - x1.16xlarge
+      - x1.32xlarge
+      - p2.xlarge
+      - p2.8xlarge
+      - p2.16xlarge
+      - p3.2xlarge
+      - p3.8xlarge
+      - p3.16xlarge
+      - p3dn.24xlarge
+      - r5.large
+      - r5.xlarge
+      - r5.2xlarge
+      - r5.4xlarge
+      - r5.12xlarge
+      - r5.24xlarge
+      - r5d.large
+      - r5d.xlarge
+      - r5d.2xlarge
+      - r5d.4xlarge
+      - r5d.12xlarge
+      - r5d.24xlarge
+      - z1d.large
+      - z1d.xlarge
+      - z1d.2xlarge
+      - z1d.3xlarge
+      - z1d.6xlarge
+      - z1d.12xlarge
+
+  NodeAutoScalingGroupMinSize:
+    Description: Minimum size of Node Group ASG
+    Type: Number
+    Default: 1
+
+  NodeAutoScalingGroupMaxSize:
+    Description: Maximum size of Node Group ASG. Set to at least 1 greater than NodeAutoScalingGroupDesiredCapacity.
+    Type: Number
+    Default: 4
+
+  NodeAutoScalingGroupDesiredCapacity:
+    Description: Desired capacity of Node Group ASG.
+    Type: Number
+    Default: 2
+
+  InferenceNodeAutoScalingGroupMinSize:
+    Description: Minimum size of Node Group ASG.
+    Type: Number
+    Default: 2
+
+  InferenceNodeAutoScalingGroupMaxSize:
+    Description: Maximum size of Node Group ASG. Set to at least 1 greater than NodeAutoScalingGroupDesiredCapacity.
+    Type: Number
+    Default: 6
+
+  InferenceNodeAutoScalingGroupDesiredCapacity:
+    Description: Desired capacity of Node Group ASG.
+    Type: Number
+    Default: 2
+
+  NodeVolumeSize:
+    Description: Node volume size
+    Type: Number
+    Default: 100
+
+  InferenceNodeVolumeSize:
+    Description: Node volume size
+    Type: Number
+    Default: 100
+
+  InferenceNodeGroupName:
+    Description: Unique identifier for the Node Group.
+    Default: inference
+    Type: String
+
+  NodeGroupName:
+    Description: Unique identifier for the Node Group.
+    Default: standard
+    Type: String
+
+  InferenceBootstrapArguments:
+    Description: Arguments to pass to the bootstrap script. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami
+    Default: --kubelet-extra-args --node-labels=inference=true,nodegroup=elastic-inference
+    Type: String
+
+  BootstrapArguments:
+    Description: Arguments to pass to the bootstrap script. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami
+    Default: --kubelet-extra-args --node-labels=inference=false,nodegroup=standard
+    Type: String
+
+  AvailabilityZone0:
+    Description: The first availability zone in the region
+    Type: AWS::EC2::AvailabilityZone::Name
+    ConstraintDescription: Must be a valid availability zone
+
+  AvailabilityZone1:
+    Description: The second availability zone in the region
+    Type: AWS::EC2::AvailabilityZone::Name
+    ConstraintDescription: Must be a valid availability zone
+
+  CreateRoleArn:
+    Type: String
+
+  AdminUser:
+    Type: String
+
+  LambdaCustomResourceBucketPrefix:
+    Type: String
+    Default: pub-cfn-cust-res-pocs
+
+  DefaultTaskQueueVisibilityTimeout:
+    Type: Number
+    Description: The queue visibility timeout
+    MinValue: 0
+    MaxValue: 43200
+    Default: 7200 # Two hour default
+
+  DefaultTaskCompletedQueueVisibilityTimeout:
+    Type: Number
+    Description: The queue visibility timeout
+    MinValue: 0
+    MaxValue: 43200
+    Default: 500
+
+  # Scaling params
+  InferenceScaleEvaluationPeriods:
+    Description: The number of periods over which data is compared to the specified threshold
+    Type: Number
+    Default: 1
+    MinValue: 1
+
+  InferenceQueueDepthScaleOutThreshold:
+    Type: Number
+    Description: Average queue depth value to trigger auto scaling out
+    Default: 2
+
+  InferenceQueueDepthScaleInThreshold:
+    Type: Number
+    Description: Average queue depth value to trigger auto scaling in
+    Default: 2
+    MinValue: 0
+    ConstraintDescription: Value must be between 0 or more
+
+
+Mappings:
+
+  # Maps CIDR blocks to VPC and various subnets
+  CIDRMap:
+    VPC:
+      CIDR: 10.50.0.0/16
+    Public0:
+      CIDR: 10.50.0.0/19
+    Public1:
+      CIDR: 10.50.32.0/19
+
+  # Amazon EKS Linux AMI - https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
+  AMIMap:
+    us-east-2:
+      AMI: ami-0485258c2d1c3608f
+    us-east-1:
+      AMI: ami-0f2e8e5663e16b436
+    us-west-2:
+      AMI: ami-03a55127c613349a7
+    ap-northeast-1:
+      AMI: ami-0fde798d17145fae1
+    ap-northeast-2:
+      AMI: ami-07fd7609df6c8e39b
+    eu-west-1:
+      AMI: ami-00ac2e6b3cb38a9b9
+
+
+Resources:
+
+  # VPC ------------------------------------------------------------------------
+
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !FindInMap [ CIDRMap, VPC, CIDR ]
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-vpc
+
+  ElasticInferenceVpcEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref Vpc
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.elastic-inference.runtime
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SubnetIds:
+        - !Ref PublicSubnet0
+        - !Ref PublicSubnet1
+      SecurityGroupIds:
+        - !GetAtt ElasticInferenceVpcEndpointSecurityGroup.GroupId
+
+  ElasticInferenceVpcEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Elastic Inference Vpc Endpoint security group
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref NodeSecurityGroup
+          IpProtocol: tcp
+          ToPort: 443
+          FromPort: 443
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          ToPort: 443
+          FromPort: 443
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-igw
+
+  VpcGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref Vpc
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: Public Subnets
+        - Key: Network
+          Value: Public
+
+  PublicSubnet0:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !FindInMap [ CIDRMap, Public0, CIDR ]
+      AvailabilityZone: !Ref AvailabilityZone0
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PublicSubnet0
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !FindInMap [ CIDRMap, Public1, CIDR ]
+      AvailabilityZone: !Ref AvailabilityZone1
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PublicSubnet1
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VpcGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-public-igw
+
+  PublicSubnetRouteTableAssociation0:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet0
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+
+  # Queues --------------------------------------------------------------------
+
+  TaskQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub task-queue-${AWS::StackName}
+      VisibilityTimeout: !Ref DefaultTaskQueueVisibilityTimeout
+      KmsMasterKeyId: alias/aws/sqs
+
+  TaskCompletedQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub task-completed-queue-${AWS::StackName}
+      VisibilityTimeout: !Ref DefaultTaskCompletedQueueVisibilityTimeout
+      KmsMasterKeyId: alias/aws/sqs
+
+  # Buckets --------------------------------------------------------------------
+
+  TaskDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub task-data-bucket-${AWS::AccountId}-${AWS::Region}-${AWS::StackName}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  # EKS Cluster ----------------------------------------------------------------
+
+  EksCluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: !Ref EksClusterName
+      RoleArn: !GetAtt ClusterRole.Arn
+      ResourcesVpcConfig:
+        SecurityGroupIds:
+          - !Ref ClusterControlPlaneSecurityGroup
+        SubnetIds:
+          - !Ref PublicSubnet0
+          - !Ref PublicSubnet1
+    DependsOn:
+      - PublicSubnetRouteTableAssociation0
+      - PublicSubnetRouteTableAssociation1
+
+  EksAdminRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: eks-describe
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Resource: '*'
+                Effect: Allow
+                Action:
+                  - eks:Describe*
+
+  # https://github.com/rnzsgh/cfn-eks-custom-resource-aws-auth-configmap
+  AwsAuthConfigMapConfigCustomResourceLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !Sub ${LambdaCustomResourceBucketPrefix}-${AWS::Region}
+        S3Key: cfn-eks-custom-resource-aws-auth-configmap.zip
+      Handler: main
+      Role: !Ref CreateRoleArn
+      Runtime: go1.x
+      Timeout: 300
+
+  AwsAuthConfigMapConfigCustomResource:
+    Type: Custom::AwsAuthConfigMapConfigCustomResource
+    Properties:
+      ServiceToken: !GetAtt AwsAuthConfigMapConfigCustomResourceLambda.Arn
+      CreateRoleArn: !Ref CreateRoleArn
+      ClusterName: !Ref EksCluster
+      ClusterEndpoint: !GetAtt EksCluster.Endpoint
+      NodeInstanceRoleArn: !GetAtt NodeInstanceRole.Arn
+      AdminUser: !Ref AdminUser
+      AdminRoleArn: !GetAtt EksAdminRole.Arn
+      AccountId: !Ref AWS::AccountId
+
+  ClusterControlPlaneSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for the EKS control plane
+      VpcId: !Ref Vpc
+
+  ClusterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+            Effect: Allow
+            Principal:
+              Service:
+                - eks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+
+  # EKS Nodes ------------------------------------------------------------------
+
+  NodeInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref NodeInstanceRole
+
+  NodeInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - ec2.amazonaws.com
+          Action:
+            - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: ei-access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elastic-inference:Connect
+                  - iam:List*
+                  - iam:Get*
+                  - ec2:Describe*
+                  - ec2:Get*
+                  - ec2:ModifyInstanceAttribute
+                Resource: '*'
+        - PolicyName: sqs-access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:ChangeMessageVisibility
+                  - sqs:GetQueueUrl
+                  - sqs:GetQueueAttributes
+                Resource:
+                  - !GetAtt TaskQueue.Arn
+                  - !GetAtt TaskCompletedQueue.Arn
+        - PolicyName: s3-access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:Get*
+                  - s3:List*
+                  - s3:PutObjectAcl
+                  - s3:PutObject
+                  - s3:PutObjectTagging
+                  - s3:PutObjectVersionAcl
+                  - s3:PutObjectVersionTagging
+                  - s3:PutObjectRetention
+                  - s3:PutObjectLegalHold
+                  - s3:PutBucketObjectLockConfiguration
+                  - s3:AbortMultipartUpload
+                  - s3:DeleteObject
+                  - s3:DeleteObjectTagging
+                  - s3:DeleteObjectVersion
+                  - s3:DeleteObjectVersionTagging
+                Resource:
+                  - !Sub arn:aws:s3:::${TaskDataBucket}/*
+                  - !Sub arn:aws:s3:::${TaskDataBucket}
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+
+  NodeSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for all nodes in the cluster
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: !Sub kubernetes.io/cluster/${EksCluster}
+          Value: owned
+    DependsOn: EksCluster
+
+  NodeSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow node to communicate with each other
+      GroupId: !Ref NodeSecurityGroup
+      SourceSecurityGroupId: !Ref NodeSecurityGroup
+      IpProtocol: tcp
+      FromPort: 0
+      ToPort: 65535
+    DependsOn: NodeSecurityGroup
+
+  NodeSecurityGroupFromControlPlaneIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow worker Kubelets and pods to receive communication from the cluster control plane
+      GroupId: !Ref NodeSecurityGroup
+      SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
+      IpProtocol: tcp
+      FromPort: 1025
+      ToPort: 65535
+    DependsOn: NodeSecurityGroup
+
+  ControlPlaneEgressToNodeSecurityGroup:
+    Type: AWS::EC2::SecurityGroupEgress
+    DependsOn: NodeSecurityGroup
+    Properties:
+      Description: Allow the cluster control plane to communicate with worker Kubelet and pods
+      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      DestinationSecurityGroupId: !Ref NodeSecurityGroup
+      IpProtocol: tcp
+      FromPort: 1025
+      ToPort: 65535
+
+  NodeSecurityGroupFromControlPlaneOn443Ingress:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: NodeSecurityGroup
+    Properties:
+      Description: Allow pods running extension API servers on port 443 to receive communication from cluster control plane
+      GroupId: !Ref NodeSecurityGroup
+      SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+
+  ControlPlaneEgressToNodeSecurityGroupOn443:
+    Type: AWS::EC2::SecurityGroupEgress
+    DependsOn: NodeSecurityGroup
+    Properties:
+      Description: Allow the cluster control plane to communicate with pods running extension API servers on port 443
+      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      DestinationSecurityGroupId: !Ref NodeSecurityGroup
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+
+  ClusterControlPlaneSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow pods to communicate with the cluster API Server
+      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      SourceSecurityGroupId: !Ref NodeSecurityGroup
+      IpProtocol: tcp
+      ToPort: 443
+      FromPort: 443
+    DependsOn: NodeSecurityGroup
+
+  InferenceNodeGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      DesiredCapacity: !Ref InferenceNodeAutoScalingGroupDesiredCapacity
+      MinSize: !Ref InferenceNodeAutoScalingGroupMinSize
+      MaxSize: !Ref InferenceNodeAutoScalingGroupMaxSize
+      LaunchTemplate:
+        LaunchTemplateId: !Ref InferenceNodeLaunchTemplate
+        Version: 1
+      VPCZoneIdentifier:
+        - !Ref PublicSubnet0
+        - !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: !Sub ${EksCluster}-${InferenceNodeGroupName}-Node
+          PropagateAtLaunch: true
+        - Key: !Sub kubernetes.io/cluster/${EksCluster}
+          Value: owned
+          PropagateAtLaunch: true
+      TerminationPolicies:
+        - OldestInstance
+        - OldestLaunchTemplate
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MaxBatchSize: 1
+        MinInstancesInService: !Ref NodeAutoScalingGroupDesiredCapacity
+        PauseTime: PT5M
+    DependsOn:
+      - AwsAuthConfigMapConfigCustomResource
+
+  NodeGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      DesiredCapacity: !Ref NodeAutoScalingGroupDesiredCapacity
+      LaunchTemplate:
+        LaunchTemplateId: !Ref NodeLaunchTemplate
+        Version: 1
+      MinSize: !Ref NodeAutoScalingGroupMinSize
+      MaxSize: !Ref NodeAutoScalingGroupMaxSize
+      VPCZoneIdentifier:
+        - !Ref PublicSubnet0
+        - !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: !Sub ${EksCluster}-${NodeGroupName}-Node
+          PropagateAtLaunch: true
+        - Key: !Sub kubernetes.io/cluster/${EksCluster}
+          Value: owned
+          PropagateAtLaunch: true
+      TerminationPolicies:
+        - OldestInstance
+        - OldestLaunchTemplate
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MaxBatchSize: 1
+        MinInstancesInService: !Ref NodeAutoScalingGroupDesiredCapacity
+        PauseTime: PT5M
+    DependsOn:
+      - AwsAuthConfigMapConfigCustomResource
+
+  InferenceNodeLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Name: !Ref NodeInstanceProfile
+        ImageId: !FindInMap [ AMIMap, !Ref "AWS::Region", AMI ]
+        InstanceType: !Ref InferenceNodeInstanceType
+        KeyName: !Ref KeyName
+        ElasticInferenceAccelerators:
+          - Type: !Ref ElasticInferenceType
+        Monitoring:
+          Enabled: true
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              VolumeSize: !Ref InferenceNodeVolumeSize
+              VolumeType: gp2
+              DeleteOnTermination: true
+        UserData:
+          Fn::Base64:
+            !Sub |
+              #!/bin/bash
+              set -o xtrace
+              yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+              mv /etc/amazon/ssm/seelog.xml.template /etc/amazon/ssm/seelog.xml
+              systemctl restart amazon-ssm-agent
+              /etc/eks/bootstrap.sh ${EksCluster} ${InferenceBootstrapArguments}
+              /opt/aws/bin/cfn-signal --exit-code $? --stack  ${AWS::StackName} --resource InferenceNodeGroup --region ${AWS::Region}
+        NetworkInterfaces:
+          - DeviceIndex: 0
+            AssociatePublicIpAddress: true
+            DeleteOnTermination: true
+            Groups:
+              - !Ref NodeSecurityGroup
+
+  NodeLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Name: !Ref NodeInstanceProfile
+        ImageId: !FindInMap [ AMIMap, !Ref "AWS::Region", AMI ]
+        InstanceType: !Ref NodeInstanceType
+        KeyName: !Ref KeyName
+        Monitoring:
+          Enabled: true
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              VolumeSize: !Ref NodeVolumeSize
+              VolumeType: gp2
+              DeleteOnTermination: true
+        UserData:
+          Fn::Base64:
+            !Sub |
+              #!/bin/bash
+              set -o xtrace
+              yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+              mv /etc/amazon/ssm/seelog.xml.template /etc/amazon/ssm/seelog.xml
+              systemctl restart amazon-ssm-agent
+              /etc/eks/bootstrap.sh ${EksCluster} ${BootstrapArguments}
+              /opt/aws/bin/cfn-signal --exit-code $? --stack  ${AWS::StackName} --resource NodeGroup --region ${AWS::Region}
+        NetworkInterfaces:
+          - DeviceIndex: 0
+            AssociatePublicIpAddress: true
+            DeleteOnTermination: true
+            Groups:
+              - !Ref NodeSecurityGroup
+
+  TaskQueueDepthLambdaEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      State: ENABLED
+      ScheduleExpression: 'cron(* * * * ? *)'
+      Targets:
+        - Arn: !GetAtt TaskQueueDepthLambda.Arn
+          Id: !Ref TaskQueueDepthLambda
+
+  TaskQueueDepthLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      FunctionName: !Ref TaskQueueDepthLambda
+      SourceArn: !GetAtt TaskQueueDepthLambdaEventRule.Arn
+
+  # https://github.com/rnzsgh/lambda-update-sqs-queue-depth
+  TaskQueueDepthLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Environment:
+        Variables:
+          QueueUrl: !Ref TaskQueue
+          CloudWatchMetricNamespace: eks-ei/sqs
+          CloudWatchMetricName: TaskQueueApproximateNumberOfMessages
+      Code:
+        S3Bucket: !Sub ${LambdaCustomResourceBucketPrefix}-${AWS::Region}
+        S3Key: lambda-update-sqs-queue-depth.zip
+      Handler: main
+      Role: !GetAtt TaskQueueDepthLambdaExecutionRole.Arn
+      Runtime: go1.x
+      Timeout: 300
+
+  TaskQueueDepthLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      Policies:
+        - PolicyName: sqs-attr
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:GetQueueAttributes
+                Resource:
+                  - !GetAtt TaskQueue.Arn
+        - PolicyName: cloudwatch-put
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudwatch:PutMetricData
+                Resource: '*'
+
+  InferenceScaleOutPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref InferenceNodeGroup
+      ScalingAdjustment: 2
+      Cooldown: 60
+
+  InferenceScaleInPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref InferenceNodeGroup
+      ScalingAdjustment: -1
+      Cooldown: 60
+
+  InferenceScaleOutAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      EvaluationPeriods: !Ref InferenceScaleEvaluationPeriods
+      Statistic: Average
+      TreatMissingData: notBreaching
+      Threshold: !Ref InferenceQueueDepthScaleOutThreshold
+      AlarmDescription: Alarm to add capacity if queue depth is high
+      Period: 60
+      AlarmActions:
+        - !Ref InferenceScaleOutPolicy
+      Namespace:  eks-ei/sqs
+      MetricName: TaskQueueApproximateNumberOfMessages
+      ComparisonOperator: GreaterThanThreshold
+
+  InferenceScaleInAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      EvaluationPeriods: !Ref InferenceScaleEvaluationPeriods
+      Statistic: Average
+      TreatMissingData: notBreaching
+      Threshold: !Ref InferenceQueueDepthScaleInThreshold
+      AlarmDescription: Alarm to reduce capacity if container queue depth is low
+      Period: 300
+      AlarmActions:
+        - !Ref InferenceScaleInPolicy
+      Namespace: eks-ei/sqs
+      MetricName: TaskQueueApproximateNumberOfMessages
+      ComparisonOperator: LessThanThreshold
+
+
+Outputs:
+
+  Name:
+    Value: !Ref AWS::StackName
+    Export:
+      Name: !Sub ${AWS::StackName}-Name
+
+  VpcId:
+    Value: !Ref Vpc
+    Export:
+      Name: !Sub ${AWS::StackName}-VpcId
+
+  VpcCidr:
+    Description: Vpc cidr block
+    Value: !FindInMap [ CIDRMap, VPC, CIDR ]
+    Export:
+      Name: !Sub ${AWS::StackName}-vpc-cidr
+
+  PublicSubnet0:
+    Value: !Ref PublicSubnet0
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicSubnet0Id
+
+  PublicSubnet1:
+    Value: !Ref PublicSubnet1
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicSubnet1Id
+
+  NodeInstanceRoleArn:
+    Value: !GetAtt NodeInstanceRole.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-NodeInstanceRoleArn
+
+  NodeInstanceRoleId:
+    Value: !GetAtt NodeInstanceRole.RoleId
+    Export:
+      Name: !Sub ${AWS::StackName}-NodeInstanceRoleId
+
+  EksClusterName:
+    Value: !Ref EksCluster
+    Export:
+      Name: !Sub ${AWS::StackName}-EksClusterName
+
+  EksClusterArn:
+    Value: !GetAtt EksCluster.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-EksClusterArn
+
+  EksClusterEndpoint:
+    Value: !GetAtt EksCluster.Endpoint
+    Export:
+      Name: !Sub ${AWS::StackName}-EksClusterEndpoint
+
+  ClusterControlPlaneSecurityGroup:
+    Value: !Ref ClusterControlPlaneSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-ClusterControlPlaneSecurityGroup
+
+  TaskQueueUrl:
+    Description: Task queue url
+    Value: !Ref TaskQueue
+    Export:
+      Name: !Sub ${AWS::StackName}-TaskQueueUrl
+
+  TaskQueueArn:
+    Description: Task queue arn
+    Value: !GetAtt TaskQueue.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-TaskQueueArn
+
+  TaskQueueName:
+    Description: Task queue name
+    Value: !GetAtt TaskQueue.QueueName
+    Export:
+      Name: !Sub ${AWS::StackName}-TaskQueueName
+
+  TaskCompletedQueueUrl:
+    Description: TaskCompleted queue url
+    Value: !Ref TaskCompletedQueue
+    Export:
+      Name: !Sub ${AWS::StackName}-TaskCompletedQueueUrl
+
+  TaskCompletedQueueArn:
+    Description: TaskCompleted queue arn
+    Value: !GetAtt TaskCompletedQueue.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-TaskCompletedQueueArn
+
+  TaskCompletedQueueName:
+    Description: TaskCompleted queue name
+    Value: !GetAtt TaskCompletedQueue.QueueName
+    Export:
+      Name: !Sub ${AWS::StackName}-TaskCompletedQueueName
+
+
