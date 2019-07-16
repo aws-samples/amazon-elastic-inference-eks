@@ -6,7 +6,7 @@ This repository contains resources demonstrating how to use Amazon Elastic Infer
 
 ## Deploy
 
-The follow steps require the [AWS Command Line Interface](https://aws.amazon.com/cli/) to be installed and [configured](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html). Additionally, you must follow the AWS instructions for installing the [IAM compatible version of kubectl](https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html).
+The following steps require the [AWS Command Line Interface](https://aws.amazon.com/cli/) to be installed and [configured](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html). Additionally, you must follow the AWS instructions for installing the [IAM compatible version of kubectl](https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html).
 
 Amazon EKS and Elastic Inference are currently not available in all AWS regions. Consult the [AWS Region Table](https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/) for more information.
 
@@ -29,8 +29,8 @@ make create-cluster
 ```
 
 This step takes 10-15 minutes to create all of the required resources. Once the command is executed,
-a AWS Management Console link to the CloudFormation section is printed. You can monitor the resource creation
-here. Once the stack says, "CREATE_COMPLETE", you can move on to the next step.
+an AWS Management Console link to the CloudFormation section is printed. You can monitor the resource creation
+here. Once the stack status is, CREATE_COMPLETE, you can move on to the next step.
 
 If you are interested in overriding the default values in the Makefile, create a custom.mk file in the same directory and set the values. The following parameters can be overridden:
 
