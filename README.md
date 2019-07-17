@@ -10,6 +10,8 @@ The following steps require the [AWS Command Line Interface](https://aws.amazon.
 
 Amazon EKS and Elastic Inference are currently not available in all AWS regions. Consult the [AWS Region Table](https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/) for more information.
 
+If you would like to see the operations behind the make commands, [see the Makefile](https://github.com/aws-samples/amazon-elastic-inference-eks/blob/master/Makefile).
+
 The first step in the process is to clone this repository:
 
 ```
@@ -75,7 +77,7 @@ After the cluster is created, update your local [kubeconfig](https://kubernetes.
 make update-kubeconfig
 ```
 
-You can test your Amazon EKS authentication by running:
+You can test your local Amazon EKS authentication by running:
 
 ```
 kubectl get nodes
@@ -116,7 +118,6 @@ task-queue-CLUSTER/STACK NAME
 ```
 
 The format of the message submitted in the console is:
-
 
 ```
 { "bucket": "task-data-bucket-ACCOUNT_ID-REGION-CLUSTER/STACK NAME", "object": "sample.mov" }
