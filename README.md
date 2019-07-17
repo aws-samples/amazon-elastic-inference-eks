@@ -1,6 +1,6 @@
 ## Amazon Elastic Inference with Amazon EKS
 
-This repository contains resources demonstrating how to use Amazon Elastic Inference (EI) and Amazon EKS together to deliver a cost optimized, scalable solution for performing inference on video frames. More specifically, the solution herein runs containers in Amazon EKS that read a video from Amazon S3, preprocess its frames, then send the frames for object detection to a TensorFlow Serving container modified to work with Amazon EI. This computationally intensive use case showcases the advantages of using Amazon EI and Amazon EKS together to achieve accelerated inference at low cost within a scalable, containerized architecture.
+This repository contains resources demonstrating how to use [Amazon Elastic Inference](https://aws.amazon.com/machine-learning/elastic-inference/) (EI) and [Amazon EKS](https://aws.amazon.com/eks/) together to deliver a cost optimized, scalable solution for performing inference on video frames. More specifically, the solution herein runs containers in Amazon EKS that read a video from Amazon S3, preprocess its frames, then send the frames for object detection to a TensorFlow Serving container modified to work with Amazon EI. This computationally intensive use case showcases the advantages of using Amazon EI and Amazon EKS together to achieve accelerated inference at low cost within a scalable, containerized architecture.
 
 ![overview](images/overview.png)
 
@@ -10,7 +10,7 @@ The following steps require the [AWS Command Line Interface](https://aws.amazon.
 
 Amazon EKS and Elastic Inference are currently not available in all AWS regions. Consult the [AWS Region Table](https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/) for more information.
 
-If you would like to see the operations behind the make commands, [see the Makefile](https://github.com/aws-samples/amazon-elastic-inference-eks/blob/master/Makefile).
+If you would like to see the operations behind the make commands, [see the Makefile](https://github.com/aws-samples/amazon-elastic-inference-eks/blob/master/Makefile). Likewise, if you would like to see the resources being created and how the EI accelerator is attached, see the [CloudFormation template](https://github.com/aws-samples/amazon-elastic-inference-eks/blob/master/stack.cfn.yml). 
 
 The first step in the process is to clone this repository:
 
