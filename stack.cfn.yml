@@ -270,7 +270,7 @@ Parameters:
   CreateRoleArn:
     Type: String
 
-  AdminUser:
+  AdminUserArn:
     Type: String
 
   LambdaCustomResourceBucketPrefix:
@@ -542,9 +542,8 @@ Resources:
       ClusterName: !Ref EksCluster
       ClusterEndpoint: !GetAtt EksCluster.Endpoint
       NodeInstanceRoleArn: !GetAtt NodeInstanceRole.Arn
-      AdminUser: !Ref AdminUser
+      AdminUserArn: !Ref AdminUserArn
       AdminRoleArn: !GetAtt EksAdminRole.Arn
-      AccountId: !Ref AWS::AccountId
 
   ClusterControlPlaneSecurityGroup:
     Type: AWS::EC2::SecurityGroup
