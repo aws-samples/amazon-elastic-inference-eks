@@ -44,8 +44,8 @@ EKS_ADMIN_ROLE ?= arn:aws:iam::$(AWS_ACCOUNT_ID):role/EksEiBlogPostRole
 REGION ?= 'us-east-1'
 AZ_0 ?= 'us-east-1a'
 AZ_1 ?= 'us-east-1b'
-SSH_KEY_NAME ?= ''
-USERNAME ?= $(shell aws sts get-caller-identity --output text --query 'Arn' | awk -F'/' '{print $2}')
+SSH_KEY_NAME ?= 'somekey'
+USER_ARN ?= $(shell aws sts get-caller-identity --output text --query 'Arn')
 EI_TYPE ?= 'eia1.medium'
 NODE_INSTANCE_TYPE ?= 'm5.large'
 INFERENCE_NODE_INSTANCE_TYPE ?= 'c5.large'
@@ -92,6 +92,34 @@ You can check the status of the deployment by running:
 ```
 kubectl describe daemonset inference-daemon
 ```
+
+Wait until the "Pod Status" shows the total oucnt as "Running" Next you deploy a sample MOV file to the data bucket created
+by the stack. In the S3 console, you will see a bucket that has the format of (default CLUSTER/STACK NAME is - eks-ei-blog):
+
+```
+task-data-bucket-ACCOUNT_ID-REGION-CLUSTER/STACK NAME
+```
+
+From the command line, you can use something similar to upload sample content to the bucket:
+
+```
+aws s3 cp --region REGION sample.mov s3://task-data-bucket-ACCOUNT_ID-REGION-CLUSTER/STACK NAME
+```
+
+Once you have sample data in the bucket, in the SQS console, submit a sample task. The queue name resembles:
+
+```
+task-queue-CLUSTER/STACK NAME
+```
+
+The format of the message submitted in the console is:
+
+
+```
+{ "bucket": "task-data-bucket-ACCOUNT_ID-REGION-CLUSTER/STACK NAME", "object": "sample.mov" }
+```
+
+Change the bucket name and the object key to match your deployment.
 
 ## License Summary
 
