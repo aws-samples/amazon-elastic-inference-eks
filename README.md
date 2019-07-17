@@ -92,9 +92,12 @@ You can check the status of the deployment by running:
 ```
 kubectl describe daemonset inference-daemon
 ```
+Wait until the "Pod Status" shows the total oucnt as "Running"
 
-Wait until the "Pod Status" shows the total oucnt as "Running" Next you deploy a sample MOV file to the data bucket created
-by the stack. In the S3 console, you will see a bucket that has the format of (default CLUSTER/STACK NAME is - eks-ei-blog):
+## Run
+
+Next you deploy a sample MOV file to the data bucket created by the stack. In the S3 console,
+you will see a bucket that has the format of (default CLUSTER/STACK NAME is - eks-ei-blog):
 
 ```
 task-data-bucket-ACCOUNT_ID-REGION-CLUSTER/STACK NAME
@@ -106,7 +109,7 @@ From the command line, you can use something similar to upload sample content to
 aws s3 cp --region REGION sample.mov s3://task-data-bucket-ACCOUNT_ID-REGION-CLUSTER/STACK NAME
 ```
 
-Once you have sample data in the bucket, in the SQS console, submit a sample task. The queue name resembles:
+Once you have sample data in the bucket, in the SQS section of the AWS Management Console, [submit a sample task](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-send-message.html). The queue name resembles:
 
 ```
 task-queue-CLUSTER/STACK NAME
@@ -120,6 +123,20 @@ The format of the message submitted in the console is:
 ```
 
 Change the bucket name and the object key to match your deployment.
+
+To see the inference results, you can [view messages](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-receive-delete-message.html) on the task completed SQS queue in the AWS Management Console.
+
+
+## Cleanup
+
+You must delete the DaemonSet before terminating the Amazon EKS cluster, or there will be resources that cannot be
+reclaimed by CloudFormation. To do so, run:
+
+```
+kubectl delete -f k8s-daemonset.yml
+```
+
+Once the DaemonSet is terminated, you can [delete the stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-delete-stack.html) in the CloudFormation section of the AWS Management Console.
 
 ## License Summary
 
