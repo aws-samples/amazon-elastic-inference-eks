@@ -83,7 +83,7 @@ You can test your local Amazon EKS authentication by running:
 kubectl get nodes
 ```
 
-Next, we are going to deploy the [DaemonSet](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) to the cluster:
+The output should provide high-level information about the four nodes (or a different number if you overrode the defaults). Next, we are going to deploy the [DaemonSet](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) to the cluster:
 
 ```
 kubectl apply -f k8s-daemonset.yml
