@@ -16,7 +16,7 @@ REGION ?= 'us-east-1'
 AZ_0 ?= 'us-east-1a'
 AZ_1 ?= 'us-east-1b'
 SSH_KEY_NAME ?= ''
-USERNAME ?= $(shell aws sts get-caller-identity --output text --query 'Arn' | awk -F'/' '{print $2}')
+USER_ARN ?= $(shell aws sts get-caller-identity --output text --query 'Arn')
 EI_TYPE ?= 'eia1.medium'
 NODE_INSTANCE_TYPE ?= 'm5.large'
 INFERENCE_NODE_INSTANCE_TYPE ?= 'c5.large'
@@ -65,7 +65,7 @@ create-cluster:
   ParameterKey=EksClusterName,ParameterValue="$(CLUSTER_NAME)" \
   ParameterKey=AvailabilityZone0,ParameterValue="$(AZ_0)" \
   ParameterKey=AvailabilityZone1,ParameterValue="$(AZ_1)" \
-  ParameterKey=AdminUser,ParameterValue="$(USERNAME)" \
+  ParameterKey=AdminUserArn,ParameterValue="$(USER_ARN)" \
   ParameterKey=CreateRoleArn,ParameterValue="$(EKS_ADMIN_ROLE)" \
   ParameterKey=KeyName,ParameterValue="$(SSH_KEY_NAME)" \
   ParameterKey=InferenceNodeGroupName,ParameterValue="$(INFERENCE_NODE_GROUP_NAME)" \
