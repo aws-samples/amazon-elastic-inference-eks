@@ -6,11 +6,11 @@ This repository contains resources demonstrating how to use [Amazon Elastic Infe
 
 ## Deploy
 
-The following steps require the [AWS Command Line Interface](https://aws.amazon.com/cli/) to be installed and [configured](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html). Additionally, you must follow the AWS instructions for installing the [IAM compatible version of kubectl](https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html).
+The following steps require the [AWS Command Line Interface](https://aws.amazon.com/cli/) to be installed and [configured](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html). Additionally, you must follow the AWS instructions for installing the [IAM compatible version of kubectl](https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html). You must also install the [aws-iam-authenticator](https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html), to help with IAM integration
 
 Amazon EKS and Elastic Inference are currently not available in all AWS regions. Consult the [AWS Region Table](https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/) for more information.
 
-If you would like to see the operations behind the make commands, [see the Makefile](https://github.com/aws-samples/amazon-elastic-inference-eks/blob/master/Makefile). Likewise, if you would like to see the resources being created and how the EI accelerator is attached, see the [CloudFormation template](https://github.com/aws-samples/amazon-elastic-inference-eks/blob/master/stack.cfn.yml). 
+If you would like to see the operations behind the make commands, [see the Makefile](https://github.com/aws-samples/amazon-elastic-inference-eks/blob/master/Makefile). Likewise, if you would like to see the resources being created and how the EI accelerator is attached, see the [CloudFormation template](https://github.com/aws-samples/amazon-elastic-inference-eks/blob/master/stack.cfn.yml).
 
 The first step in the process is to clone this repository:
 
