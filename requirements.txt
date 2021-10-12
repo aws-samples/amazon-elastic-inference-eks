@@ -2,4 +2,4 @@
 boto3==1.9.188
 requests==2.21.0
 numpy==1.16.3
-opencv-python-headless==4.1.0.25
+opencv-python-headless==4.2.0.32
