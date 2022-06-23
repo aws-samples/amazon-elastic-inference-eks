@@ -19,7 +19,7 @@ metadata:
   name: inference-daemon
   namespace: default
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: inference-daemon
@@ -34,11 +34,14 @@ subjects:
   name: inference-daemon
   namespace: default
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: inference-daemon
 spec:
+  selector:
+    matchLabels:
+      app: inference-daemon
   updateStrategy:
     type: RollingUpdate
   template:
@@ -59,9 +62,9 @@ spec:
         imagePullPolicy: Always
         env:
         - name: SQS_TASK_QUEUE
-          value: task-queue-eks-a
+          value: task-queue-eks-ei-blog
         - name: SQS_TASK_COMPLETED_QUEUE
-          value: task-completed-queue-eks-a
+          value: task-completed-queue-eks-ei-blog
         resources:
           requests:
             memory: 1024Mi
